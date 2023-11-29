@@ -4,12 +4,14 @@ import config
 
 from os import listdir
 from os.path import isfile, join
-from image_reader import read_image
+import image_reader
+import hdf5_reader
 
 _required_keys = ["directories", "formats"]
-_available_formats = ['png']
+_available_formats = ['png', 'hdf5', 'h5']
 _strategies = {
-    read_image : ['png']
+    image_reader : ['png'],
+    hdf5_reader: ['hdf5', 'h5']
 }
 def _get_settings()->dict[str, str]:
     """Read JSON settings from settings.json in project root directory.
@@ -33,15 +35,18 @@ def _get_settings()->dict[str, str]:
     return settings
 
 def _read_directory(directory : str, formats : list[str])->np.ndarray:
-    files = [file for file in listdir(directory) if isfile(join(directory, file)) and file.split(".")[-1] in formats]
+    files = ["{0}/{1}".format(directory,file) 
+             for file in listdir(directory) 
+             if isfile(join(directory, file)) and file.split(".")[-1] in formats]
     for file in files:
         for strategy, strategy_formats in _strategies.items():
             if file.split(".")[-1] in strategy_formats:
-                yield strategy(file)
+                for img in strategy.read_image(file):
+                    yield img
                 break
 
 def _save_data(data : np.ndarray, index : int):
-    np.save("{0}/{1}.npy".format(config.DATA_DIRECTORY, index), data, allow_pickle=False)
+    np.save("{0}/{1}.npy".format(config.DATA_OUTPUT_DIRECTORY, index), data, allow_pickle=False)
     return index + 1
 
 def prepare_data():

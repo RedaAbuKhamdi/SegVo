@@ -1,1 +1,1 @@
-DATA_DIRECTORY = "./data"
+DATA_OUTPUT_DIRECTORY = "./data"
