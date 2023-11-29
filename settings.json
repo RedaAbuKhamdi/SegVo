@@ -1,0 +1,4 @@
+{
+    "directories":["./raw_data"],
+    "formats": ["png"]
+}
